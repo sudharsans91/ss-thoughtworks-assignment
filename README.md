@@ -10,6 +10,13 @@
 6. Container Orchestration - Kubernetes
 7. Application deployment Update - CICD - Jenkins
 
+**Source Code**
+
+https://github.com/sudharsans91/ss-thoughtworks-assignment/tree/main
+
+**My Docker Hub**
+https://hub.docker.com/repository/docker/sudharshu91/tw-ss-mediawiki/general 
+
 **Creating an Azure Kubernetes Service (AKS) using Terraform and Azure DevOps pipeline**
 
 **Prerequisites:**
@@ -68,9 +75,9 @@ To create our own Docker image for MediaWiki, we can use a Dockerfile. I have fo
 
 we can build this Docker image using the docker build command:
 
-'''
+```
 docker build -t mediawiki-image .
-'''
+```
 
 **Push the built image to our docker hub registry**
 
@@ -94,14 +101,18 @@ Create a Kubernetes deployment YAML file for our MediaWiki application. Replace 
 
 Apply the deployment to create the MediaWiki pod:
 
+```
 kubectl apply -f mediawiki-deployment.yaml
+```
+
 Step 3: Create a Kubernetes Service
 
 Create a Kubernetes service YAML file to expose the MediaWiki deployment:
 
 Apply the service definition to create a LoadBalancer service:
-
+```
 kubectl apply -f mediawiki-service.yaml
+```
 It may take some time for the LoadBalancer service to provision an external IP address.
 
 Step 4: Access MediaWiki
@@ -119,7 +130,8 @@ Make sure we have a Docker image of our application hosted in our Docker Hub reg
 Set up Jenkins with the necessary plugins (such as Docker, Azure Credentials, Kubernetes, etc.).
 Create a Jenkins Pipeline:
 Create a Jenkins pipeline script for the deployment update. We can use a Jenkinsfile for this purpose.
-'''
+
+```
 pipeline {
     agent any
 
@@ -156,7 +168,7 @@ pipeline {
         }
     }
 }
-'''
+```
 Configure Jenkins Job:
 Azure and Docker Hub using the provided credentials in Jenkins.
 AKS cluster and AKS credentials are correctly set up before running the pipeline.
