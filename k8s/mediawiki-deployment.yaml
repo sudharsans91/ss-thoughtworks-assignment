@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediawiki-deployment
+  namespace: ss  # Specify the "ss" namespace here
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mediawiki
+  template:
+    metadata:
+      labels:
+        app: mediawiki
+    spec:
+      containers:
+        - name: mediawiki
+          image: sudharshu91/tw-ss-mediawiki:1.40.1
+          ports:
+            - containerPort: 80
+          env:
+            - name: MYSQL_HOST
+              value: mysql-service
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER
+              value: your_mysql_user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mediawiki-mysql-secret
+                  key: password
+          volumeMounts:
+            - name: mediawiki-persistent-storage
+              mountPath: /var/www/html/images
+      volumes:
+        - name: mediawiki-persistent-storage
+          persistentVolumeClaim:
+            claimName: mediawiki-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mediawiki-service
+  namespace: ss  # Specify the "ss" namespace here
+spec:
+  selector:
+    app: mediawiki
+  ports:
+    - protocol: TCP
+      port: 80
+  type: LoadBalancer

@@ -1,0 +1,13 @@
+variables:
+  - name: terraformVersion
+    value: 0.14.10
+  - name: serviceConnectionName
+    value: SudharsanSubs
+  - name: backendAzureRmResourceGroupName
+    value: ss-kube-rg
+  - name: backendAzureRmStorageAccountName
+    value: akstfstore
+  - name: backendAzureRmContainerName
+    value: aks
+  - name: backendAzureRmKey
+    value: terraformstate.tf
