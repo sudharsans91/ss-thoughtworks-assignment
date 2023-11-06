@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        AZURE_CREDENTIALS = credentials('your-azure-credentials-id')
-        DOCKER_HUB_CREDENTIALS = credentials('your-docker-hub-credentials-id')
+        AZURE_CREDENTIALS = credentials('azure-credentials-id')
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials-id')
     }
 
     stages {
@@ -16,13 +16,12 @@ pipeline {
         stage('Update AKS Deployment') {
             steps {
                 script {
-                    def image = 'your-docker-hub-username/your-image-name:latest'
-                    def appName = 'your-application-name'
-                    def resourceGroupName = 'your-resource-group-name'
-                    def aksClusterName = 'your-aks-cluster-name'
-                    def deploymentName = 'your-deployment-name'
+                    def image = 'sudharshu91/tw-ss-mediawiki:1.40.1'
+                    def resourceGroupName = 'ss-tw-rg'
+                    def aksClusterName = 'ss-tw-aks'
+                    def deploymentName = 'mediawiki-deployment'
 
-                    withCredentials([azureServicePrincipal(credentialsId: 'your-azure-credentials-id', variable: 'AZURE_CREDENTIALS')]) {
+                    withCredentials([azureServicePrincipal(credentialsId: 'azure-credentials-id', variable: 'AZURE_CREDENTIALS')]) {
                         sh """
                         az aks get-credentials --resource-group $resourceGroupName --name $aksClusterName
                         kubectl set image deployment/$deploymentName $appName=$image

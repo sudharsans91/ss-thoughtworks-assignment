@@ -99,15 +99,21 @@ Before we can deploy the Docker image from our Docker Hub account, we need to au
 
 **Step 3: Create a Kubernetes Deployment**
 
-Create a Kubernetes deployment YAML file for our MediaWiki application. We will be using our MediaWiki Docker image on Docker Hub.
+1. Create our own namespace to do this deployment. Here I have created namespace as "ss".
+   
+2. Create a Kubernetes deployment YAML file for our MediaWiki application. And we will be using loadbalancer as Kubernetes Service Type.
 
-mediawiki-deployment.yaml
+3. We will be using mysql as a backend database for Mediawiki app.
+
+4. We will be using  our MediaWiki Docker image on Docker Hub.
+
+**mediawiki-deployment.yaml**
 ```
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mediawiki-deployment
-  namespace: ss  # Specify the "ss" namespace here
+  namespace: ss
 spec:
   replicas: 1
   selector:
@@ -148,7 +154,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mediawiki-service
-  namespace: ss  # Specify the "ss" namespace here
+  namespace: ss
 spec:
   selector:
     app: mediawiki
@@ -159,36 +165,41 @@ spec:
 
 ```
 
-Apply the deployment to create the MediaWiki pods:
+**Apply the deployment to our namespace to create the MediaWiki pods:**
 
 ```
-kubectl apply -f mediawiki-deployment.yaml
+kubectl apply -f mediawiki-deployment.yaml -n ss
 ```
-
-Step 3: Create a Kubernetes Service
-
-Create a Kubernetes service YAML file to expose the MediaWiki deployment:
-
-Apply the service definition to create a LoadBalancer service:
+**To check the status of deployment,**
 ```
-kubectl apply -f mediawiki-service.yaml
+kubectl get deployment mediawiki-deployment -n ss
+kubectl describe deployment mediawiki-deployment -n ss
 ```
-It may take some time for the LoadBalancer service to provision an external IP address.
+**To check the status of pods,**
+```
+kubectl get pods -n ss
+```
+It may take some time for the LoadBalancer service to provision an external IP address.To get the service
+```
+kubectl get svc -n ss
+```
 
 Step 4: Access MediaWiki
 
 Once the external IP address is available, we can access our MediaWiki application by navigating to http://<external-ip> in our web browser.
 
-# App Update using Jenkins
+# Application Update using Jenkins Pipeline
 
 To update a deployment running in Azure AKS (Azure Kubernetes Service) using a custom Docker image from our own Docker Hub registry using a Jenkins pipeline, we can follow these steps:
 
 Set Up Prerequisites:
 
-Ensure we have an Azure AKS cluster up and running.
-Make sure we have a Docker image of our application hosted in our Docker Hub registry.
+Create Jenkins VM in Azure and access the same from browser
+
 Set up Jenkins with the necessary plugins (such as Docker, Azure Credentials, Kubernetes, etc.).
+
 Create a Jenkins Pipeline:
+
 Create a Jenkins pipeline script for the deployment update. We can use a Jenkinsfile for this purpose.
 
 ```
@@ -196,8 +207,8 @@ pipeline {
     agent any
 
     environment {
-        AZURE_CREDENTIALS = credentials('our-azure-credentials-id')
-        DOCKER_HUB_CREDENTIALS = credentials('our-docker-hub-credentials-id')
+        AZURE_CREDENTIALS = credentials('azure-credentials-id')
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials-id')
     }
 
     stages {
@@ -210,13 +221,12 @@ pipeline {
         stage('Update AKS Deployment') {
             steps {
                 script {
-                    def image = 'our-docker-hub-username/our-image-name:latest'
-                    def appName = 'our-application-name'
-                    def resourceGroupName = 'our-resource-group-name'
-                    def aksClusterName = 'our-aks-cluster-name'
-                    def deploymentName = 'our-deployment-name'
+                    def image = 'sudharshu91/tw-ss-mediawiki:1.40.1'
+                    def resourceGroupName = 'ss-tw-rg'
+                    def aksClusterName = 'ss-tw-aks'
+                    def deploymentName = 'mediawiki-deployment'
 
-                    withCredentials([azureServicePrincipal(credentialsId: 'our-azure-credentials-id', variable: 'AZURE_CREDENTIALS')]) {
+                    withCredentials([azureServicePrincipal(credentialsId: 'azure-credentials-id', variable: 'AZURE_CREDENTIALS')]) {
                         sh """
                         az aks get-credentials --resource-group $resourceGroupName --name $aksClusterName
                         kubectl set image deployment/$deploymentName $appName=$image
@@ -228,12 +238,15 @@ pipeline {
         }
     }
 }
+
 ```
-Configure Jenkins Job:
-Azure and Docker Hub using the provided credentials in Jenkins.
-AKS cluster and AKS credentials are correctly set up before running the pipeline.
-Create a new Jenkins job and select "Pipeline" as the job type.
-Configure our job to use the above Jenkinsfile
-Build and Trigger:
+
+**Configure Jenkins Job:**
+1. Azure and Docker Hub using the provided credentials in Jenkins.
+2. AKS cluster and AKS credentials are correctly set up before running the pipeline.
+3. Create a new Jenkins job and select "Pipeline" as the job type.
+4. Configure our job to use the above Jenkinsfile
+   
+**Build and Trigger:**
 
 Build and trigger the Jenkins job. It will update the deployment in our Azure AKS cluster with the new Docker image from our Docker Hub registry.
