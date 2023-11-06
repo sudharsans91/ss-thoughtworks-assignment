@@ -2,14 +2,6 @@
 
 **Tools Involved**
 
-| Cloud | Azure |
-| Version Control | Git |
-| Infra Automation | Azure DevOps |
-| IaC | Terraform |
-| Image Creation | Docker & Docker Hub |
-| Container Orchestration | Kubernetes |
-| Application deployment Update | CICD - Jenkins |
-
 1. Cloud - Azure
 2. Version Control - Git
 3. Infra Automation - Azure DevOps
@@ -63,25 +55,16 @@ Deploy Application: Deploy our application to the AKS cluster using kubectl or o
 
 # Creating mediawiki image using Dockerfile
 
-To create a Docker image for MediaWiki, we can use a Dockerfile.
+**Prerequisites:**
 
-Please refer **Dockerfile** in this repo
+1. Install Docker and make sure docker service is up and running.
+2. We should have own docker hub registry created for maintaning our image.
 
-Dockerfile does the following:
+My Docker Hub registry for Mediawiki - https://hub.docker.com/repository/docker/sudharshu91/tw-ss-mediawiki/general 
 
-It starts with the official PHP image with Apache as the base image.
+To create our own Docker image for MediaWiki, we can use a Dockerfile. I have followed the steps defined in https://www.mediawiki.org/wiki/Manual:Running_MediaWiki_on_Red_Hat_Linux 
 
-Sets environment variables for the MediaWiki version and installation path.
-
-Installs system dependencies and PHP extensions required for MediaWiki to function properly.
-
-Downloads and extracts the MediaWiki source code to the specified installation path.
-
-Configures Apache, enabling the rewrite module and setting permissions on the MediaWiki files.
-
-Exposes port 80 to allow access to the web server.
-
-Defines the default command to start Apache.
+** Please refer Dockerfile in this repo** - https://github.com/sudharsans91/ss-thoughtworks-assignment/blob/main/Dockerfile 
 
 we can build this Docker image using the docker build command:
 
@@ -91,11 +74,11 @@ docker build -t mediawiki-image .
 
 **Push the built image to our docker hub registry**
 
+```
 docker login
-
 docker tag ss-yw-mediawiki-1.40.1-image sudharshu91/tw-ss-mediawiki:1.40.1
-
 docker push sudharshu91/tw-ss-mediawiki:1.40.1
+```
 
 MediaWiki Docker image in our Docker Hub account, we can deploy it to our existing AKS cluster by creating a Kubernetes deployment and service.
 
