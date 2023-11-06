@@ -17,7 +17,7 @@ https://github.com/sudharsans91/ss-thoughtworks-assignment/tree/main
 **My Docker Hub**
 https://hub.docker.com/repository/docker/sudharshu91/tw-ss-mediawiki/general 
 
-**Creating an Azure Kubernetes Service (AKS) using Terraform and Azure DevOps pipeline**
+# Creating an Azure Kubernetes Service (AKS) using Terraform and Azure DevOps pipeline
 
 **Prerequisites:**
 
@@ -39,7 +39,7 @@ Create the Terraform Configuration:
 Create a Terraform configuration that defines our AKS cluster. we'll need to include resources like a Resource Group, AKS Cluster, and optionally other Azure resources.
 Ensure we use the AzureRM provider for Terraform to interact with Azure.
 
-**Please refer Infra-Terraform Folder for terraform file and ADO Pipeline yaml code.**
+***Please refer Infra-Terraform Folder for terraform file and ADO Pipeline yaml code.***
 
 **Store Terraform State:**
 
@@ -87,19 +87,79 @@ docker tag ss-yw-mediawiki-1.40.1-image sudharshu91/tw-ss-mediawiki:1.40.1
 docker push sudharshu91/tw-ss-mediawiki:1.40.1
 ```
 
-MediaWiki Docker image in our Docker Hub account, we can deploy it to our existing AKS cluster by creating a Kubernetes deployment and service.
+# Deploying Mediawiki App onto Azure AKS Cluster
 
-**Step 1: Authenticate with Docker Hub**
+**Step 1: Connect to AKS Cluster**
+
+Connect to Azure AKS Cluster using kubeconfig file
+
+**Step 2: Authenticate with Docker Hub**
 
 Before we can deploy the Docker image from our Docker Hub account, we need to authenticate with Docker Hub on our AKS cluster. we can use Kubernetes secrets to store our Docker Hub credentials securely.
 
-Create a Docker Hub secret:
+**Step 3: Create a Kubernetes Deployment**
 
-**Step 2: Create a Kubernetes Deployment**
+Create a Kubernetes deployment YAML file for our MediaWiki application. We will be using our MediaWiki Docker image on Docker Hub.
 
-Create a Kubernetes deployment YAML file for our MediaWiki application. Replace our-image-name with the name of our MediaWiki Docker image on Docker Hub.
+mediawiki-deployment.yaml
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediawiki-deployment
+  namespace: ss  # Specify the "ss" namespace here
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mediawiki
+  template:
+    metadata:
+      labels:
+        app: mediawiki
+    spec:
+      containers:
+        - name: mediawiki
+          image: sudharshu91/tw-ss-mediawiki:1.40.1
+          ports:
+            - containerPort: 80
+          env:
+            - name: MYSQL_HOST
+              value: mysql-service
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER
+              value: your_mysql_user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mediawiki-mysql-secret
+                  key: password
+          volumeMounts:
+            - name: mediawiki-persistent-storage
+              mountPath: /var/www/html/images
+      volumes:
+        - name: mediawiki-persistent-storage
+          persistentVolumeClaim:
+            claimName: mediawiki-pvc
 
-Apply the deployment to create the MediaWiki pod:
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mediawiki-service
+  namespace: ss  # Specify the "ss" namespace here
+spec:
+  selector:
+    app: mediawiki
+  ports:
+    - protocol: TCP
+      port: 80
+  type: LoadBalancer
+
+```
+
+Apply the deployment to create the MediaWiki pods:
 
 ```
 kubectl apply -f mediawiki-deployment.yaml
